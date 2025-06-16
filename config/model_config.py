@@ -10,7 +10,7 @@ MODEL_CONFIGS = {
     "grid_3x3": {
         "name": "3x3 Grid YOLO",
         "path": "models/best(grid_syn_keypt).pt",
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector/releases/download/v1.0/best(grid_syn_keypt).pt",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/best(grid_syn_keypt).pt",
         "type": "yolo_grid",
         "conf_threshold": 0.25,
         "grid_size": 3,
@@ -21,7 +21,7 @@ MODEL_CONFIGS = {
     "grid_5x5": {
         "name": "5x5 Grid YOLO",
         "path": "models/key_grid_syn_5x5.pt", 
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector/releases/download/v1.0/key_grid_syn_5x5.pt",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/key_grid_syn_5x5.pt",
         "type": "yolo_grid",
         "conf_threshold": 0.20,
         "grid_size": 5,
@@ -33,7 +33,7 @@ MODEL_CONFIGS = {
     "yolo_entire": {
         "name": "YOLO Entire Image",
         "path": "models/best.pt",
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector/releases/download/v1.0/best.pt",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/best.pt",
         "type": "yolo_entire",
         "conf_threshold": 0.25,
         "description": "YOLO model for entire image processing",
@@ -42,7 +42,7 @@ MODEL_CONFIGS = {
     "frcnn": {
         "name": "Faster R-CNN",
         "path": "models/fold_4_best_map50_aug.pth",
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector/releases/download/v1.0/fold_4_best_map50_aug.pth",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/fold_4_best_map50_aug.pth",
         "type": "frcnn",
         "conf_threshold": 0.5,
         "description": "Faster R-CNN model for entire image processing",
@@ -58,7 +58,7 @@ MODEL_CONFIGS = {
     "roi_model": {
         "name": "ROI Detection Model",
         "path": "models/best_f1_croped_syn.pt",
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector/releases/download/v1.0/best_f1_croped_syn.pt",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/best_f1_croped_syn.pt",
         "type": "yolo_roi",
         "conf_threshold": 0.25,
         "description": "YOLO model optimized for ROI-based detection",
@@ -67,7 +67,7 @@ MODEL_CONFIGS = {
     "frcnn_grid_3x3": {
         "name": "3x3 Grid FRCNN (Best)",
         "path": "models/fold_1_best_map_grid_v2_aug.pth",
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector/releases/download/v1.0/fold_1_best_map_grid_v2_aug.pth",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/fold_1_best_map_grid_v2_aug.pth",
         "type": "frcnn_grid",
         "conf_threshold": 0.3,
         "nms_threshold": 0.3,
@@ -107,6 +107,38 @@ def download_model_if_needed(config):
             return None
     
     return str(local_path)
+
+
+def get_cached_model(model_key):
+    """Get cached model instance"""
+    return st.session_state.get(f'cached_model_{model_key}', None)
+
+def cache_model(model_key, model_instance):
+    """Cache model in session state"""
+    st.session_state[f'cached_model_{model_key}'] = model_instance
+
+def unload_model(model_key):
+    """Unload model from memory"""
+    cache_key = f'cached_model_{model_key}'
+    if cache_key in st.session_state:
+        del st.session_state[cache_key]
+        st.success(f"✅ Unloaded {model_key} from memory")
+
+def unload_all_models():
+    """Unload all cached models"""
+    model_keys = list(MODEL_CONFIGS.keys())
+    count = 0
+    for key in model_keys:
+        cache_key = f'cached_model_{key}'
+        if cache_key in st.session_state:
+            del st.session_state[cache_key]
+            count += 1
+    
+    if count > 0:
+        st.success(f"✅ Unloaded {count} models from memory")
+    else:
+        st.info("No models were cached in memory")
+
 def get_model_config(model_key):
     """Get configuration for a specific model"""
     return MODEL_CONFIGS.get(model_key, None)

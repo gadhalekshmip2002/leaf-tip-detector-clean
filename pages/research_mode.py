@@ -128,7 +128,19 @@ def show_research_sidebar():
         # Common settings
         st.markdown("#### ⚙️ Common Settings")
         show_common_settings()
-        
+        st.markdown("#### 💾 Memory Management")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🗑️ Clear Models", key="clear_models"):
+                from config.model_config import unload_all_models
+                unload_all_models()
+
+        with col2:
+            # Show memory usage
+            import psutil
+            memory_percent = psutil.virtual_memory().percent
+            st.metric("Memory Usage", f"{memory_percent:.1f}%")
         
         # Batch operations
         st.markdown("#### 📦 Batch Operations")
