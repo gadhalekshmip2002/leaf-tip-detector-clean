@@ -156,11 +156,20 @@ class YOLOProcessor:
 def create_yolo_processor(model_config: Dict) -> YOLOProcessor:
     """Create and load YOLO processor from config with auto-download"""
     
-    # Check session cache first
-    from config.model_config import get_cached_model, cache_model
-    cached = get_cached_model(model_config.get('name', 'unknown'))
-    if cached and cached.is_loaded():
-        return cached
+    # Use the config key, not name
+    model_key = None
+    from config.model_config import MODEL_CONFIGS
+    for key, config in MODEL_CONFIGS.items():
+        if config == model_config:
+            model_key = key
+            break
+    
+    if model_key:
+        # Check session cache first
+        from config.model_config import get_cached_model, cache_model
+        cached = get_cached_model(model_key)
+        if cached and cached.is_loaded():
+            return cached
     
     processor = YOLOProcessor()
     
@@ -169,8 +178,9 @@ def create_yolo_processor(model_config: Dict) -> YOLOProcessor:
     model_path = download_model_if_needed(model_config)
     
     if model_path and processor.load_model(model_path, model_config.get("type", "yolo")):
-        # Cache the loaded processor
-        cache_model(model_config.get('name', 'unknown'), processor)
+        # Cache the loaded processor with correct key
+        if model_key:
+            cache_model(model_key, processor)
         return processor
     
     return processor

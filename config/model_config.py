@@ -112,11 +112,11 @@ def download_model_if_needed(config):
 # Replace the cache and unload functions with these:
 
 def get_cached_model(model_key):
-    """Get cached model instance from session state only"""
+    """Get cached model instance from session state - use model_key not name"""
     return st.session_state.get(f'model_{model_key}', None)
 
 def cache_model(model_key, model_instance):
-    """Cache model in session state only"""
+    """Cache model in session state - use model_key not name"""
     st.session_state[f'model_{model_key}'] = model_instance
 
 def unload_model(model_key):
@@ -125,8 +125,11 @@ def unload_model(model_key):
     if cache_key in st.session_state:
         del st.session_state[cache_key]
         st.success(f"✅ Unloaded {model_key}")
+        st.rerun()  # Add rerun to refresh status
         return True
-    return False
+    else:
+        st.warning(f"⚠️ {model_key} not found in cache")
+        return False
 
 def unload_all_models():
     """Nuclear option - clear everything"""

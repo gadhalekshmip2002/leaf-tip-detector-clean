@@ -121,9 +121,7 @@ def show_research_sidebar():
     with st.sidebar:
         st.markdown("### 🔬 Research Controls")
         
-        # Model management
-        st.markdown("#### 🤖 Model Status")
-        show_model_status_sidebar()
+
         
         # Common settings
         st.markdown("#### ⚙️ Common Settings")
@@ -164,19 +162,25 @@ def show_research_sidebar():
                 st.rerun()
 
         # Show cached models
+        # Show cached models with correct keys
         st.markdown("**Cached Models:**")
         cached_count = 0
         for key in st.session_state.keys():
             if key.startswith('model_'):
                 cached_count += 1
-                model_name = key.replace('model_', '')
+                model_key = key.replace('model_', '')  # This should be grid_5x5, yolo_entire, etc.
+                
+                # Get readable name
+                from config.model_config import MODEL_CONFIGS
+                model_name = MODEL_CONFIGS.get(model_key, {}).get('name', model_key)
+                
                 col1, col2 = st.columns([3, 1])
                 with col1:
                     st.text(f"📦 {model_name}")
                 with col2:
-                    if st.button("❌", key=f"remove_{model_name}"):
+                    if st.button("❌", key=f"remove_{model_key}"):
                         from config.model_config import unload_model
-                        unload_model(model_name)
+                        unload_model(model_key)
 
         if cached_count == 0:
             st.info("No models cached")

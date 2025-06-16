@@ -305,15 +305,24 @@ class FRCNNProcessor:
 def create_frcnn_processor(model_config: Dict) -> FRCNNProcessor:
     """Create and load FRCNN processor from config with auto-download"""
     
-    # Check session cache first
-    from config.model_config import get_cached_model, cache_model
-    cached = get_cached_model(model_config.get('name', 'unknown'))
-    if cached and cached.is_loaded():
-        return cached
+    # Use the config key, not name
+    model_key = None
+    from config.model_config import MODEL_CONFIGS
+    for key, config in MODEL_CONFIGS.items():
+        if config == model_config:
+            model_key = key
+            break
+    
+    if model_key:
+        # Check session cache first
+        from config.model_config import get_cached_model, cache_model
+        cached = get_cached_model(model_key)
+        if cached and cached.is_loaded():
+            return cached
     
     processor = FRCNNProcessor()
     
-    # SET CONFIG PARAMETERS BEFORE LOADING MODEL
+    # SET CONFIG PARAMETERS
     processor.default_conf_thresh = model_config.get("conf_threshold", 0.5)
     processor.box_size = model_config.get("box_size", 10) 
     processor.image_size = model_config.get("image_size", 1536)
@@ -326,8 +335,9 @@ def create_frcnn_processor(model_config: Dict) -> FRCNNProcessor:
     model_path = download_model_if_needed(model_config)
     
     if model_path and processor.load_model(model_path):
-        # Cache the loaded processor
-        cache_model(model_config.get('name', 'unknown'), processor)
+        # Cache the loaded processor with correct key
+        if model_key:
+            cache_model(model_key, processor)
         return processor
     
     return processor
