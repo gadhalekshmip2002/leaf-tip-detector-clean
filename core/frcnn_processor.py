@@ -74,10 +74,7 @@ class FRCNNProcessor:
         """Check if model is loaded"""
         return self.model is not None
     
-    # Replace the post_process_detections function in core/frcnn_processor.py
-
-     # Replace the post_process_detections function in core/frcnn_processor.py
-
+ 
     def post_process_detections(self, 
                             predictions: Dict, 
                             conf_thresh: float = None,
@@ -192,8 +189,7 @@ class FRCNNProcessor:
         
         return torch.tensor(keep, dtype=torch.long)
 
-    # Also update the run_inference function to use EXACT Colab defaults:
-
+  
     def run_inference(self, 
                     image_path: str, 
                     conf_thresh: float = None,  # EXACT match with Colab

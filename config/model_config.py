@@ -80,7 +80,7 @@ MODEL_CONFIGS = {
         "color": "orange"
     }
 }
-@st.cache_resource
+
 def download_model_if_needed(config):
     """Download model from GitHub releases if not exists locally"""
     local_path = Path(config["path"])
@@ -112,44 +112,54 @@ def download_model_if_needed(config):
 # Replace the cache and unload functions with these:
 
 def get_cached_model(model_key):
-    """Get cached model instance - NO @st.cache_resource"""
-    return st.session_state.get(f'cached_model_{model_key}', None)
+    """Get cached model instance from session state only"""
+    return st.session_state.get(f'model_{model_key}', None)
 
 def cache_model(model_key, model_instance):
-    """Cache model in session state"""
-    st.session_state[f'cached_model_{model_key}'] = model_instance
+    """Cache model in session state only"""
+    st.session_state[f'model_{model_key}'] = model_instance
 
 def unload_model(model_key):
-    """Unload model from memory"""
-    cache_key = f'cached_model_{model_key}'
+    """Unload specific model from memory"""
+    cache_key = f'model_{model_key}'
     if cache_key in st.session_state:
         del st.session_state[cache_key]
+        st.success(f"✅ Unloaded {model_key}")
         return True
     return False
 
 def unload_all_models():
-    """Unload all cached models and clear Streamlit cache"""
-    model_keys = list(MODEL_CONFIGS.keys())
-    count = 0
+    """Nuclear option - clear everything"""
+    import gc
     
-    # Clear session state
-    for key in model_keys:
-        cache_key = f'cached_model_{key}'
-        if cache_key in st.session_state:
-            del st.session_state[cache_key]
-            count += 1
+    # Clear all model-related session state
+    keys_to_remove = [key for key in st.session_state.keys() if key.startswith('model_')]
+    count = len(keys_to_remove)
     
-    # Clear Streamlit resource cache
+    for key in keys_to_remove:
+        del st.session_state[key]
+    
+    # Clear ALL Streamlit caches
+    st.cache_data.clear()
     st.cache_resource.clear()
     
-    if count > 0:
-        st.success(f"✅ Unloaded {count} models from memory")
-    else:
-        st.info("No models were cached in memory")
+    # Force garbage collection
+    gc.collect()
     
-    # Force rerun to refresh status
+    if count > 0:
+        st.success(f"🗑️ Cleared {count} models and all caches")
+    else:
+        st.info("No models found in memory")
+    
+    # Force app rerun
     st.rerun()
-
+def get_model_memory_usage():
+    """Get current memory usage"""
+    import psutil
+    process = psutil.Process()
+    memory_mb = process.memory_info().rss / 1024 / 1024
+    memory_percent = psutil.virtual_memory().percent
+    return memory_mb, memory_percent
 def get_model_config(model_key):
     """Get configuration for a specific model"""
     return MODEL_CONFIGS.get(model_key, None)

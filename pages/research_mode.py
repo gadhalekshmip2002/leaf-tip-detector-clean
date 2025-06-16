@@ -128,20 +128,58 @@ def show_research_sidebar():
         # Common settings
         st.markdown("#### ⚙️ Common Settings")
         show_common_settings()
+        
+        # Replace the memory management section in show_research_sidebar():
         st.markdown("#### 💾 Memory Management")
 
+        # Show current memory
+        from config.model_config import get_model_memory_usage
+        try:
+            memory_mb, memory_percent = get_model_memory_usage()
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Memory", f"{memory_percent:.1f}%")
+            with col2:
+                st.metric("App Memory", f"{memory_mb:.0f}MB")
+        except:
+            st.metric("Memory", "Unknown")
+
+        # Model management buttons
         col1, col2 = st.columns(2)
+
         with col1:
-            if st.button("🗑️ Clear Models", key="clear_models"):
+            if st.button("🗑️ Clear All Models", key="nuclear_clear"):
                 from config.model_config import unload_all_models
                 unload_all_models()
 
         with col2:
-            # Show memory usage
-            import psutil
-            memory_percent = psutil.virtual_memory().percent
-            st.metric("Memory Usage", f"{memory_percent:.1f}%")
-        
+            if st.button("🔄 Force Restart", key="force_restart"):
+                st.cache_data.clear()
+                st.cache_resource.clear()
+                # Clear specific processor states
+                for key in list(st.session_state.keys()):
+                    if 'processor' in key or 'model' in key:
+                        del st.session_state[key]
+                st.success("🔄 Forced restart - refresh page")
+                st.rerun()
+
+        # Show cached models
+        st.markdown("**Cached Models:**")
+        cached_count = 0
+        for key in st.session_state.keys():
+            if key.startswith('model_'):
+                cached_count += 1
+                model_name = key.replace('model_', '')
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.text(f"📦 {model_name}")
+                with col2:
+                    if st.button("❌", key=f"remove_{model_name}"):
+                        from config.model_config import unload_model
+                        unload_model(model_name)
+
+        if cached_count == 0:
+            st.info("No models cached")
         # Batch operations
         st.markdown("#### 📦 Batch Operations")
         show_batch_operations()
