@@ -206,15 +206,15 @@ def check_requirements():
     issues = []
     
     # Check model directory
-    models_dir = Path("models")
-    if not models_dir.exists():
-        issues.append("❌ Models directory not found. Please create 'models/' directory.")
+    #models_dir = Path("models")
+    #if not models_dir.exists():
+     #   issues.append("❌ Models directory not found. Please create 'models/' directory.")
     
     # Check for model files
-    from config.model_config import MODEL_CONFIGS
-    for model_key, config in MODEL_CONFIGS.items():
-        if not os.path.exists(config["path"]):
-            issues.append(f"⚠️ Model file not found: {config['path']}")
+    #from config.model_config import MODEL_CONFIGS
+    #for model_key, config in MODEL_CONFIGS.items():
+     #   if not os.path.exists(config["path"]):
+     #       issues.append(f"⚠️ Model file not found: {config['path']}")
     
     # Check for required Python packages
     required_packages = [

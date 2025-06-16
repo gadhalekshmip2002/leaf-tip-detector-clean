@@ -307,7 +307,14 @@ class FRCNNProcessor:
         }
 
 def create_frcnn_processor(model_config: Dict) -> FRCNNProcessor:
-    """Create and load FRCNN processor from config with Colab parameters"""
+    """Create and load FRCNN processor from config with auto-download"""
+    
+    # Check session cache first
+    from config.model_config import get_cached_model, cache_model
+    cached = get_cached_model(model_config.get('name', 'unknown'))
+    if cached and cached.is_loaded():
+        return cached
+    
     processor = FRCNNProcessor()
     
     # SET CONFIG PARAMETERS BEFORE LOADING MODEL
@@ -318,10 +325,13 @@ def create_frcnn_processor(model_config: Dict) -> FRCNNProcessor:
     processor.distance_threshold = model_config.get("distance_threshold", 15)
     processor.max_detections = model_config.get("max_detections", 200)
     
+    # Download model if needed
     from config.model_config import download_model_if_needed
     model_path = download_model_if_needed(model_config)
     
     if model_path and processor.load_model(model_path):
+        # Cache the loaded processor
+        cache_model(model_config.get('name', 'unknown'), processor)
         return processor
     
     return processor

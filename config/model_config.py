@@ -109,8 +109,10 @@ def download_model_if_needed(config):
     return str(local_path)
 
 
+# Replace the cache and unload functions with these:
+
 def get_cached_model(model_key):
-    """Get cached model instance"""
+    """Get cached model instance - NO @st.cache_resource"""
     return st.session_state.get(f'cached_model_{model_key}', None)
 
 def cache_model(model_key, model_instance):
@@ -122,22 +124,31 @@ def unload_model(model_key):
     cache_key = f'cached_model_{model_key}'
     if cache_key in st.session_state:
         del st.session_state[cache_key]
-        st.success(f"✅ Unloaded {model_key} from memory")
+        return True
+    return False
 
 def unload_all_models():
-    """Unload all cached models"""
+    """Unload all cached models and clear Streamlit cache"""
     model_keys = list(MODEL_CONFIGS.keys())
     count = 0
+    
+    # Clear session state
     for key in model_keys:
         cache_key = f'cached_model_{key}'
         if cache_key in st.session_state:
             del st.session_state[cache_key]
             count += 1
     
+    # Clear Streamlit resource cache
+    st.cache_resource.clear()
+    
     if count > 0:
         st.success(f"✅ Unloaded {count} models from memory")
     else:
         st.info("No models were cached in memory")
+    
+    # Force rerun to refresh status
+    st.rerun()
 
 def get_model_config(model_key):
     """Get configuration for a specific model"""
