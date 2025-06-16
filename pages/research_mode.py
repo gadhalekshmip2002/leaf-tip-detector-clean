@@ -143,46 +143,46 @@ def show_research_sidebar():
             st.metric("Memory", "Unknown")
 
         # Model management buttons
-        col1, col2 = st.columns(2)
+        col2 = st.columns(1)
 
-        with col1:
-            if st.button("🗑️ Clear All Models", key="nuclear_clear"):
-                from config.model_config import unload_all_models
-                unload_all_models()
+        
 
         with col2:
-            if st.button("🔄 Force Restart", key="force_restart"):
+            if st.button("🗑️ Unload All Models", key="unload_all_models"):
+                import gc
+                
+                # Clear all model-related session state
+                keys_to_remove = [key for key in st.session_state.keys() if 'model' in key or 'processor' in key]
+                for key in keys_to_remove:
+                    del st.session_state[key]
+                
+                # Clear ALL Streamlit caches
                 st.cache_data.clear()
                 st.cache_resource.clear()
-                # Clear specific processor states
-                for key in list(st.session_state.keys()):
-                    if 'processor' in key or 'model' in key:
-                        del st.session_state[key]
-                st.success("🔄 Forced restart - refresh page")
+                
+                # Force garbage collection
+                gc.collect()
+                
+                st.success("🗑️ All models unloaded from memory")
+                st.info("💡 Refresh the page if models still appear loaded")
                 st.rerun()
 
-        # Show cached models
-        # Show cached models with correct keys
+        
         st.markdown("**Cached Models:**")
-        cached_count = 0
+        cached_models = []
         for key in st.session_state.keys():
             if key.startswith('model_'):
-                cached_count += 1
-                model_key = key.replace('model_', '')  # This should be grid_5x5, yolo_entire, etc.
+                model_key = key.replace('model_', '')
                 
                 # Get readable name
                 from config.model_config import MODEL_CONFIGS
                 model_name = MODEL_CONFIGS.get(model_key, {}).get('name', model_key)
-                
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.text(f"📦 {model_name}")
-                with col2:
-                    if st.button("❌", key=f"remove_{model_key}"):
-                        from config.model_config import unload_model
-                        unload_model(model_key)
+                cached_models.append(model_name)
 
-        if cached_count == 0:
+        if cached_models:
+            for model_name in cached_models:
+                st.text(f"📦 {model_name}")
+        else:
             st.info("No models cached")
         # Batch operations
         st.markdown("#### 📦 Batch Operations")
