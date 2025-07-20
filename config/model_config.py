@@ -9,8 +9,8 @@ from pathlib import Path
 MODEL_CONFIGS = {
     "grid_3x3": {
         "name": "3x3 Grid YOLO",
-        "path": "models/best_grid_syn_keypt.pt",
-        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/best(grid_syn_keypt).pt",
+        "path": "models/best_grid_syn_key.pt",
+        "release_url": "https://github.com/gadhalekshmip2002/leaf-tip-detector-clean/releases/download/v1.0/best_grid_syn_key.pt",
         "type": "yolo_grid",
         "conf_threshold": 0.25,
         "grid_size": 3,
